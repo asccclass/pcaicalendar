@@ -239,7 +239,7 @@ func main() {
 
 	eventIDPtr := flag.String("event", "", "事件 ID (僅 delete 模式必填)") // 新增刪除專用參數
 
-	forcePtr := flag.Bool("force", false, "是否忽略衝突強制執行") // 🌟 新增：強制執行標籤
+	forceStr := flag.String("force", "false", "是否忽略衝突強制執行") // 🌟 新增：強制執行標籤改為字串接收
 
 	flag.Parse()
 
@@ -262,10 +262,16 @@ func main() {
 		if targetID == "" {
 			targetID = getDefaultCalendarID()
 			fmt.Printf("ℹ️ 未指定 ID，自動選用主日曆: %s\n", targetID)
+		} else {
+			targetID = resolveCalendarID(targetID)
 		}
 
+		isForce := false
+		if *forceStr == "true" || *forceStr == "1" {
+			isForce = true
+		}
 		// 🌟 新增：建立前先檢查衝突
-		if !*forcePtr && hasConflict(targetID, normalizedFrom, normalizedTo, "") {
+		if !isForce && hasConflict(targetID, normalizedFrom, normalizedTo, "") {
 			os.Exit(1) // 發現衝突且未強制執行，則中斷並回傳非零退出碼
 		}
 
@@ -276,7 +282,11 @@ func main() {
 		fmt.Println("✅ 行程新增成功！")
 
 	} else if *mode == "update" {
-		runUpdateMode(normalizedFrom, normalizedTo, *summaryPtr, *calIDPtr, *eventIDPtr, *rrulePtr, *locationPtr, *forcePtr)
+		isForce := false
+		if *forceStr == "true" || *forceStr == "1" {
+			isForce = true
+		}
+		runUpdateMode(normalizedFrom, normalizedTo, *summaryPtr, *calIDPtr, *eventIDPtr, *rrulePtr, *locationPtr, isForce)
 	} else {
 		// --- 執行讀取模式 ---
 		readCalendar(normalizedFrom, normalizedTo)
