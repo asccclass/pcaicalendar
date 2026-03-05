@@ -18,8 +18,16 @@ func getEventsJSON(calendarID, from, to string) ([]Event, error) {
 		}
 	}
 
-	output, err := exec.Command(getGogPath(), "calendar", "events", calendarID,
-		"--from", from, "--to", to, "--json").CombinedOutput()
+	var output []byte
+	var err error
+	for i := 0; i < 3; i++ {
+		output, err = exec.Command(getGogPath(), "calendar", "events", calendarID,
+			"--from", from, "--to", to, "--json").Output()
+		if err == nil {
+			break
+		}
+		time.Sleep(1 * time.Second)
+	}
 	if err != nil {
 		return nil, err
 	}
@@ -33,7 +41,15 @@ func getEventsJSON(calendarID, from, to string) ([]Event, error) {
 }
 
 func getCalendarsJSON() ([]Calendar, error) {
-	output, err := exec.Command(getGogPath(), "calendar", "calendars", "--json").CombinedOutput()
+	var output []byte
+	var err error
+	for i := 0; i < 3; i++ {
+		output, err = exec.Command(getGogPath(), "calendar", "calendars", "--json").Output()
+		if err == nil {
+			break
+		}
+		time.Sleep(1 * time.Second)
+	}
 	if err != nil {
 		return nil, err
 	}
